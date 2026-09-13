@@ -1,9 +1,5 @@
-import { PieceData } from "./piece";
+import Piece from "../piece";
 
-type BoardState = PieceData[][];
+type BoardState = (Piece | null)[][];
 
-type Board = {
-
-};
-
-export type { BoardState, Board };
+export type { BoardState };

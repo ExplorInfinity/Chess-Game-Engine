@@ -1,4 +1,5 @@
-class ChessEngine {
+class ChessEngine
+{
 
     static checkState() {
 

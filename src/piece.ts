@@ -1,6 +1,7 @@
-import type {BoardState, PieceColors, PieceNames, Move, Position} from './types';
+import type { BoardState, PieceColors, PieceNames, Move, Position } from './types';
 
-abstract class Piece {
+abstract class Piece
+{
     abstract moves: Move[];
 
     isMoved: boolean = false;
@@ -13,16 +14,14 @@ abstract class Piece {
     getValidMoves(board: BoardState , pos: Position): Position[] {
         const validMoves: Position[] = [];
 
-        for (const move of this.moves)
-        {
-            if (!move.condition(board, pos))
+        for (const move of this.moves) {
+            if (move.condition && !move.condition(this, board, pos))
                 continue;
 
             const { dx, dy } = move.vec;
             let { x: currX, y: currY } = pos;
 
-            while (true)
-            {
+            while (true) {
                 currX += dx; currY += dy;
                 if (currX < 0 || currY < 0 || currX >= board.length || currY >= board[0].length)
                     break;
@@ -37,3 +36,5 @@ abstract class Piece {
         return validMoves;
     }
 }
+
+export default Piece;
