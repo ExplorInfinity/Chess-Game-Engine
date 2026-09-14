@@ -1,3 +1,3 @@
-export type { BoardState } from './board';
-export type { PieceColors, PieceNames, PieceData } from './piece';
-export type { Position, MoveVec2, MoveConditionFunction, Move } from './move';
+export type { PiecePositionMap, BoardLayout } from './board';
+export type { PieceColor, PieceName, ColorPrefix, PieceCode, PieceLayoutCode } from './piece';
+export type { Position, MoveVec2, MoveConditionFunction, Move, MoveRecord } from './move';

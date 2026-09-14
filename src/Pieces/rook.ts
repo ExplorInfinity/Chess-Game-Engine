@@ -1,5 +1,5 @@
 import Piece from "../piece";
-import type { Move } from "../types";
+import type {Move, PieceColor} from "../types";
 
 const RookMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: true },
@@ -11,6 +11,11 @@ const RookMoves: Move[] = [
 class Rook extends Piece
 {
     moves = RookMoves;
+
+    constructor(color: PieceColor)
+    {
+        super(color, "rook");
+    }
 }
 
-export default Rook;
+export { Rook };

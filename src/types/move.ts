@@ -1,4 +1,4 @@
-import type { BoardState } from "./board";
+import type { PiecePositionMap } from "./board";
 import Piece from "../piece";
 
 type Position = {
@@ -11,7 +11,7 @@ type MoveVec2 = {
     dy: number;
 }
 
-type MoveConditionFunction = (piece: Piece, board: BoardState, pos: Position) => boolean;
+type MoveConditionFunction = (piece: Piece, board: PiecePositionMap, pos: Position) => boolean;
 
 type Move = {
     vec: MoveVec2;
@@ -20,4 +20,12 @@ type Move = {
     specialAction?: (game: any) => void; // Todo: Implement Game Handler Class
 }
 
-export type { Position, MoveVec2, MoveConditionFunction, Move };
+type MoveRecord = {
+    from: Position;
+    to: Position;
+    piece: Piece;
+    capturedPiece?: Piece;
+    promotedPiece?: Piece;
+}
+
+export type { Position, MoveVec2, MoveConditionFunction, Move, MoveRecord };

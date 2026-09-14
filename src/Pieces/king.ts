@@ -1,5 +1,5 @@
 import Piece from "../piece";
-import type {BoardState, Move, Position} from "../types";
+import type {PiecePositionMap, Move, PieceColor, Position} from "../types";
 import {MoveConditionFunction} from "../types/move";
 
 // 'self' is implied for 'this' keyword here
@@ -36,6 +36,11 @@ const KingMoves: Move[] = [
 class King extends Piece
 {
     moves = KingMoves;
+
+    constructor(color: PieceColor)
+    {
+        super(color, "king");
+    }
 }
 
-export default King;
+export { King };

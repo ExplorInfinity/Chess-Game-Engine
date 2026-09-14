@@ -1,14 +1,8 @@
-import type { Move } from './move';
+type PieceColor = "white" | "black";
+type PieceName = "pawn" | "knight" | "bishop" | "rook" | "queen" | "king";
 
-type PieceColors = "white" | "black";
-type PieceNames = "pawn" | "knight" | "bishop" | "rook" | "queen" | "king";
+type ColorPrefix = "w" | "b";
+type PieceCode = "P" | "N" | "B" | "R" | "Q" | "K";
+type PieceLayoutCode = `${ColorPrefix}${PieceCode}`;
 
-type PieceData = {
-    color: PieceColors;
-    name: PieceNames;
-    isSliding: boolean;
-    canJump: boolean;
-    moves: Move[];
-}
-
-export type { PieceColors, PieceNames, PieceData };
+export type { PieceColor, PieceName, ColorPrefix, PieceCode, PieceLayoutCode };

@@ -1,5 +1,5 @@
 import Piece from "../piece";
-import type {MoveConditionFunction, Move} from "../types";
+import type {MoveConditionFunction, Move, PieceColor} from "../types";
 
 // 'self' is implied for 'this' keyword here
 const LeftSideEnPassant: MoveConditionFunction = (self, board, pos) => {
@@ -30,6 +30,11 @@ const PawnMoves: Move[] = [
 class Pawn extends Piece
 {
     moves = PawnMoves;
+
+    constructor(color: PieceColor)
+    {
+        super(color, "pawn");
+    }
 }
 
-export default Pawn;
+export { Pawn };

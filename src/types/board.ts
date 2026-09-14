@@ -1,5 +1,9 @@
 import Piece from "../piece";
+import {PieceLayoutCode} from "./piece";
 
-type BoardState = (Piece | null)[][];
+type PiecePositionMap = (Piece | null)[][];
 
-export type { BoardState };
+type BoardLayout =
+    (null | PieceLayoutCode)[][];
+
+export type { PiecePositionMap, BoardLayout };
