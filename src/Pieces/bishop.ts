@@ -10,11 +10,16 @@ const BishopMoves: Move[] = [
 
 class Bishop extends Piece
 {
-    moves = BishopMoves;
+    static readonly moves = BishopMoves;
 
     constructor(color: PieceColor)
     {
         super(color, "bishop");
+    }
+
+    public getMoves(): readonly Move[]
+    {
+        return Bishop.moves;
     }
 }
 

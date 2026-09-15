@@ -29,11 +29,16 @@ const PawnMoves: Move[] = [
 
 class Pawn extends Piece
 {
-    moves = PawnMoves;
+    static readonly moves = PawnMoves;
 
     constructor(color: PieceColor)
     {
         super(color, "pawn");
+    }
+
+    public getMoves(): readonly Move[]
+    {
+        return Pawn.moves;
     }
 }
 

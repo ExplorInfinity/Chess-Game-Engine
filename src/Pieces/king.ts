@@ -1,6 +1,5 @@
 import Piece from "../piece";
-import type {PiecePositionMap, Move, PieceColor, Position} from "../types";
-import {MoveConditionFunction} from "../types/move";
+import type {Move, PieceColor, MoveConditionFunction} from "../types";
 
 // 'self' is implied for 'this' keyword here
 const ShortCastleCondition: MoveConditionFunction = (self, board, pos) => {
@@ -35,11 +34,16 @@ const KingMoves: Move[] = [
 
 class King extends Piece
 {
-    moves = KingMoves;
+    static readonly moves= KingMoves;
 
     constructor(color: PieceColor)
     {
         super(color, "king");
+    }
+
+    public getMoves(): readonly Move[]
+    {
+        return King.moves;
     }
 }
 

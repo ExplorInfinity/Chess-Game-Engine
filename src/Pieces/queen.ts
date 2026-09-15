@@ -14,11 +14,16 @@ const QueenMoves: Move[] = [
 
 class Queen extends Piece
 {
-    moves = QueenMoves;
+    static readonly moves = QueenMoves;
 
     constructor(color: PieceColor)
     {
         super(color, "queen");
+    }
+
+    public getMoves(): readonly Move[]
+    {
+        return Queen.moves;
     }
 }
 

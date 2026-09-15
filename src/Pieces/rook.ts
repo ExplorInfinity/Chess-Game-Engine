@@ -10,11 +10,16 @@ const RookMoves: Move[] = [
 
 class Rook extends Piece
 {
-    moves = RookMoves;
+    static readonly moves = RookMoves;
 
     constructor(color: PieceColor)
     {
         super(color, "rook");
+    }
+
+    public getMoves(): readonly Move[]
+    {
+        return Rook.moves;
     }
 }
 
