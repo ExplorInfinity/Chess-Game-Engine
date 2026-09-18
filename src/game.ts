@@ -3,7 +3,7 @@ import {Board} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
 
 const enum GameStatus {NOT_STARTED, ACTIVE, WHITE_WON, BLACK_WON, DRAW}
-const enum GameResultType {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_DRAW, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
+const enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_DRAW, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
 
 const BoardSize = 8;
 
@@ -21,20 +21,25 @@ const DefaultBoard: BoardLayout = [
 class Game
 {
     private moveHistory: MoveRecord[] = [];
-    private currentTurn: PieceColor = "white";
+
+    private _currentTurnColor: PieceColor = "white";
+    private _currentState: GameStatus = GameStatus.NOT_STARTED;
+    private _currentResult: GameResult = GameResult.PENDING;
 
     public readonly board: Board = new Board(BoardSize);
-    public readonly currentState: GameStatus = GameStatus.NOT_STARTED;
-    public readonly currentResult: GameResultType = GameResultType.PENDING;
+
+    public get currentTurnColor(): PieceColor   { return this._currentTurnColor; }
+    public get currentState(): GameStatus       { return this._currentState; }
+    public get currentResult(): GameResult      { return this._currentResult; }
+
+    private changeCurrentTurn()
+    {
+        this._currentTurnColor = this._currentTurnColor === "white" ? "black" : "white";
+    }
 
     public getBoardPositionMap()
     {
         return this.board.positionMap;
-    }
-
-    public clearBoard()
-    {
-        this.board.clearBoard();
     }
 
     public setBoardLayout(layout: BoardLayout = DefaultBoard)
@@ -69,6 +74,8 @@ class Game
         this.board.setAtPos(from, null);
         this.board.setAtPos(to, piece);
 
+        this.changeCurrentTurn();
+
         return moveRecord;
     }
 
@@ -94,12 +101,17 @@ class Game
             }
         }
 
+        this.changeCurrentTurn();
+
         return true;
     }
 
-    public simulateMoveAndCheckFor(move: MoveQuery, fn: (game: Game) => any)
+    public simulateMoveAndCheckFor(moveQuery: MoveQuery, fn: (game: Game) => any)
     {
-        this.makeMove(move);
+        const remark = this.playMove(moveQuery);
+        if (!remark.executed)
+            return null;
+
         const res = fn(this);
         this.undoMove();
         return res;
@@ -113,10 +125,10 @@ class Game
         if (!piece)
             return { result: "Invalid Move", executed: false, remark: `No piece at position (${from.x},${from.y})` };
 
-        if (piece?.color !== this.currentTurn)
-            return { result: "Invalid Turn", remark: `Wait for ${this.currentTurn}'s turn!`, executed: false };
+        if (piece?.color !== this._currentTurnColor)
+            return { result: "Invalid Turn", remark: `Wait for ${this._currentTurnColor}'s turn!`, executed: false };
 
-        const move = ChessRuleSet.validateMove(this.board, from, to);
+        const move = ChessRuleSet.validateMove(this, from, to);
         if (!move.valid) return { result: "Illegal Move", executed: false };
 
         // Apply changes to board
@@ -130,4 +142,4 @@ class Game
 
 }
 
-export { Game, GameStatus, GameResultType, BoardSize, DefaultBoard };
+export { Game, GameStatus, GameResult, BoardSize, DefaultBoard };

@@ -3,7 +3,7 @@ import Piece from "../piece";
 import {PieceColor} from "./piece";
 import {Board} from "../board";
 
-type MoveConditionFunction = (piece: Piece, board: PiecePositionMap, pos: Position) => boolean;
+type MoveConditionFunction = (board: Board, piece: Piece, pos: Position) => boolean;
 type MoveSpecialAction = (board: Board, moveRecord: MoveRecord) => void;
 
 interface Position {
