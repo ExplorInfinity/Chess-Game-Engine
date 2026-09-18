@@ -19,17 +19,17 @@ const LongCastleCondition: MoveConditionFunction = (self, board, pos) => {
     */
 
 const KingMoves: Move[] = [
-    { vec: { dx:  0, dy:  1 }, isSliding: false },
-    { vec: { dx:  0, dy: -1 }, isSliding: false },
-    { vec: { dx:  1, dy:  0 }, isSliding: false },
-    { vec: { dx: -1, dy:  0 }, isSliding: false },
-    { vec: { dx:  1, dy:  1 }, isSliding: false },
-    { vec: { dx: -1, dy:  1 }, isSliding: false },
-    { vec: { dx: -1, dy: -1 }, isSliding: false },
-    { vec: { dx:  1, dy: -1 }, isSliding: false },
+    { vec: { dx:  0, dy:  1 }, isSliding: false, canAttack: true },
+    { vec: { dx:  0, dy: -1 }, isSliding: false, canAttack: true },
+    { vec: { dx:  1, dy:  0 }, isSliding: false, canAttack: true },
+    { vec: { dx: -1, dy:  0 }, isSliding: false, canAttack: true },
+    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: true },
+    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: true },
+    { vec: { dx: -1, dy: -1 }, isSliding: false, canAttack: true },
+    { vec: { dx:  1, dy: -1 }, isSliding: false, canAttack: true },
 
-    { vec: { dx:  2, dy:  0 }, isSliding: false, condition: ShortCastleCondition }, // Short Castle
-    { vec: { dx: -2, dy:  0 }, isSliding: false, condition: LongCastleCondition }, // Long Castle
+    { vec: { dx:  2, dy:  0 }, isSliding: false, canAttack: false, condition: ShortCastleCondition }, // Short Castle
+    { vec: { dx: -2, dy:  0 }, isSliding: false, canAttack: false, condition: LongCastleCondition }, // Long Castle
 ];
 
 class King extends Piece

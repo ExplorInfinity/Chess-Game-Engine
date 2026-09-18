@@ -2,10 +2,10 @@ import Piece from "../piece";
 import type {Move, PieceColor} from "../types";
 
 const BishopMoves: Move[] = [
-    { vec: { dx:  1, dy:  1 }, isSliding: true },
-    { vec: { dx: -1, dy:  1 }, isSliding: true },
-    { vec: { dx: -1, dy: -1 }, isSliding: true },
-    { vec: { dx:  1, dy: -1 }, isSliding: true }
+    { vec: { dx:  1, dy:  1 }, isSliding: true, canAttack: true },
+    { vec: { dx: -1, dy:  1 }, isSliding: true, canAttack: true },
+    { vec: { dx: -1, dy: -1 }, isSliding: true, canAttack: true },
+    { vec: { dx:  1, dy: -1 }, isSliding: true, canAttack: true }
 ];
 
 class Bishop extends Piece

@@ -1,31 +1,71 @@
-import type { PiecePositionMap } from "./board";
+import type {BoardChange, PiecePositionMap} from "./board";
 import Piece from "../piece";
+import {PieceColor} from "./piece";
+import {Board} from "../board";
 
-type Position = {
+type MoveConditionFunction = (piece: Piece, board: PiecePositionMap, pos: Position) => boolean;
+type MoveSpecialAction = (board: Board, moveRecord: MoveRecord) => void;
+
+interface Position {
     x: number;
     y: number;
 }
 
-type MoveVec2 = {
+interface LegalPosition extends Position {
+    onMove?: MoveSpecialAction;
+}
+
+interface MoveVec2 {
     dx: number;
     dy: number;
 }
 
-type MoveConditionFunction = (piece: Piece, board: PiecePositionMap, pos: Position) => boolean;
-
-type Move = {
-    vec: MoveVec2;
-    isSliding: boolean;
-    condition?: MoveConditionFunction;
-    specialAction?: (game: any) => void; // Todo: Implement Game Handler Class
-}
-
-type MoveRecord = {
+interface MoveQuery {
     from: Position;
     to: Position;
-    piece: Piece;
-    capturedPiece?: Piece;
-    promotedPiece?: Piece;
 }
 
-export type { Position, MoveVec2, MoveConditionFunction, Move, MoveRecord };
+interface MoveRecord {
+    from: Position;
+    changes: BoardChange[];
+}
+
+interface Move {
+    vec: MoveVec2;
+    isSliding: boolean;
+    canAttack: boolean;
+    condition?: MoveConditionFunction;
+    specialAction?: MoveSpecialAction;
+}
+
+interface LegalMove {
+    result: "Legal Move";
+    executed: true;
+}
+
+interface InvalidMove {
+    result: "Invalid Move";
+    remark?: string;
+    executed: false;
+}
+
+interface IllegalMove {
+    result: "Illegal Move";
+    remark?: string;
+    executed: false;
+}
+
+interface InvalidTurn {
+    result: "Invalid Turn";
+    remark?: `Wait for ${PieceColor}'s turn!`;
+    executed: false;
+}
+
+type MoveRemark = LegalMove | InvalidMove | IllegalMove | InvalidTurn;
+
+interface IsValidMove {
+    valid: boolean;
+    onMove?: MoveSpecialAction;
+}
+
+export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, Move, MoveQuery, MoveRecord, MoveRemark, IsValidMove };
