@@ -78,6 +78,11 @@ class Board
 
         return null;
     }
+
+    public isInBounds(pos: Position)
+    {
+        return (pos.x >= 0 && pos.y >= 0 && pos.x < this.boardSize && pos.y < this.boardSize);
+    }
 }
 
 export { Board };

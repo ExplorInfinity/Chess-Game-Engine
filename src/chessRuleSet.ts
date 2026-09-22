@@ -1,12 +1,7 @@
 import type {IsValidMove, LegalPosition, PieceColor, PieceName, PiecePositionMap, Position} from "./types";
 import {Board} from "./board";
 import {Game, GameResult} from "./game";
-
-// todo: shift this function to a utility file
-function switchColor(color: PieceColor): PieceColor
-{
-    return color === "white" ? "black" : "white";
-}
+import {switchColor} from "./utils/color";
 
 class ChessRuleSet
 {
@@ -32,7 +27,7 @@ class ChessRuleSet
         if (!piece) return;
 
         for (const move of piece.getMoves()) {
-            if (move.condition && !move.condition(game.board, piece, piecePos))
+            if (move.condition && !move.condition(game, piecePos))
                 continue;
 
             const dx = move.vec.dx;
@@ -71,8 +66,9 @@ class ChessRuleSet
         return attackedSquares;
     }
 
-    private static getPseudoLegalMoves(board: Board, pos: Position): LegalPosition[]
+    private static getPseudoLegalMoves(game: Game, pos: Position): LegalPosition[]
     {
+        const { board } = game;
         const piece = board.getAtPos(pos);
         if (!piece)
             throw Error(`Invalid try to get legal moves, no piece at position (${pos.x}, ${pos.y})!`);
@@ -81,7 +77,7 @@ class ChessRuleSet
         const { boardSize, positionMap: piecePositionMap } = board;
 
         for (const move of piece.getMoves()) {
-            if (move.condition && !move.condition(board, piece, pos))
+            if (move.condition && !move.condition(game, pos))
                 continue;
 
             const dx = move.vec.dx;
@@ -145,7 +141,7 @@ class ChessRuleSet
 
     public static getLegalMoves(game: Game, piecePos: Position): LegalPosition[]
     {
-        const pseudoLegalMoves = ChessRuleSet.getPseudoLegalMoves(game.board, piecePos);
+        const pseudoLegalMoves = ChessRuleSet.getPseudoLegalMoves(game, piecePos);
 
         const { currentTurnColor } = game;
         return pseudoLegalMoves.filter(move => {
@@ -178,6 +174,56 @@ class ChessRuleSet
         const foundMove = legalMoves.find(move => move.x === to.x && move.y === to.y);
 
         return { valid: foundMove !== undefined, onMove: foundMove?.onMove };
+    }
+
+    public static canSeeEachOther(game: Game, a: Position, b: Position)
+    {
+        if (!game.board.isInBounds(a) || !game.board.isInBounds(b))
+            return false;
+
+        const dx = Math.abs(a.x - b.x);
+        const dy = Math.abs(a.y - b.y);
+
+        if (a.x != b.x && a.y != b.y && dx != dy)
+            return false;
+
+        const stepX = Math.abs(b.x - a.x);
+        const stepY = Math.abs(b.y - a.y);
+
+        let x = a.x + stepX, y = a.y + stepY;
+        while (x !== b.x || y !== b.y) {
+            if (game.board.positionMap[y][x] !== null)
+                return false;
+            x += stepX;
+            y += stepY;
+        }
+
+        return true;
+    }
+
+    public static isPathClear(game: Game, start: Position, end: Position)
+    {
+        if (!game.board.isInBounds(start) || !game.board.isInBounds(end))
+            return false;
+
+        const dx = Math.abs(start.x - end.x);
+        const dy = Math.abs(start.y - end.y);
+
+        if (start.x != end.x && start.y != end.y && dx != dy)
+            return false;
+
+        const stepX = Math.abs(end.x - start.x);
+        const stepY = Math.abs(end.y - start.y);
+
+        let x = start.x, y = start.y;
+        while (x !== end.x || y !== end.y) {
+            x += stepX;
+            y += stepY;
+            if (game.board.positionMap[y][x] !== null)
+                return false;
+        }
+
+        return true;
     }
 
 }

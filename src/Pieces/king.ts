@@ -1,22 +1,59 @@
 import Piece from "../piece";
-import type {Move, PieceColor, MoveConditionFunction} from "../types";
+import type {Move, PieceColor, MoveConditionFunction, Position} from "../types";
+import {Game} from "../game";
+import {ChessRuleSet} from "../chessRuleSet";
 
-// 'self' is implied for 'this' keyword here
-const ShortCastleCondition: MoveConditionFunction = (self, board, pos) => {
-    const rook = board[pos.y][board[0].length-1];
-    return !(self.isMoved || rook?.name !== "rook" || rook?.isMoved);
+const ShortCastleCondition: MoveConditionFunction = (game: Game, pos: Position) => {
+    const { board } = game;
+    const king = board.getAtPos(pos);
+    const rook = board.positionMap[pos.y][board.boardSize-1];
+
+    if (!king || king.isMoved || king.name !== "king" ||
+        !rook || rook.isMoved || rook.name !== "rook" ||
+        rook.color !== king.color ||
+        ChessRuleSet.isKingInCheck(game, king.color) ||
+        !ChessRuleSet.canSeeEachOther(game, pos, { x: board.boardSize-1, y: pos.y }))
+    {
+        return false;
+    }
+
+    for(let dx = 1; dx <= 2; ++dx) {
+        const isKingInCheck = game.evaluateAndBacktrack(
+            { from: pos, to: { x: pos.x + dx, y: pos.y } },
+            (game: Game): boolean => ChessRuleSet.isKingInCheck(game, king.color)
+        );
+
+        if (isKingInCheck) return false;
+    }
+
+    return true;
 }
 
-const LongCastleCondition: MoveConditionFunction = (self, board, pos) => {
-    const rook = board[pos.y][0];
-    return !(self.isMoved || rook?.name !== "rook" || rook?.isMoved);
+const LongCastleCondition: MoveConditionFunction = (game: Game, pos: Position) => {
+    const { board } = game;
+    const king = board.getAtPos(pos);
+    const rook = board.positionMap[pos.y][0];
+
+    if (!king || king.isMoved || king.name !== "king" ||
+        !rook || rook.isMoved || rook.name !== "rook" ||
+        rook.color !== king.color ||
+        ChessRuleSet.isKingInCheck(game, king.color) ||
+        !ChessRuleSet.canSeeEachOther(game, pos, { x: 0, y: pos.y }))
+    {
+        return false;
+    }
+
+    for(let dx = -1; dx >= -2; --dx) {
+        const isKingInCheck = game.evaluateAndBacktrack(
+            { from: pos, to: { x: pos.x + dx, y: pos.y } },
+            (game: Game): boolean => ChessRuleSet.isKingInCheck(game, king.color)
+        );
+
+        if (isKingInCheck) return false;
+    }
+
+    return true;
 }
-
-
-/* Todo (After game object is made)
-    1. Check if path is clear between king and rook before castling
-    2. Check if king will be in check if moved through that path before castling
-    */
 
 const KingMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: false, canAttack: true },

@@ -1,32 +1,65 @@
 import Piece from "../piece";
-import type {MoveConditionFunction, Move, PieceColor} from "../types";
+import {Game} from "../game";
+import type {MoveConditionFunction, Move, PieceColor, Position} from "../types";
+import {ChessRuleSet} from "../chessRuleSet";
+import {getColorMultiplier} from "../utils/color";
 
-// 'self' is implied for 'this' keyword here
-const LeftCapture: MoveConditionFunction = (self, board, pos) => {
-    return true;
+const LeftCapture: MoveConditionFunction = (game: Game, pos: Position) => {
+    const pawn = game.board.getAtPos(pos);
+    if (!pawn || pawn.name !== "pawn" || pos.x === 0)
+        return false;
+
+    const y = pos.y + 1 * getColorMultiplier(pawn.color);
+    const x = pos.x - 1;
+    const capture = game.board.positionMap[y][x];
+    return (capture !== null && capture.color !== pawn.color);
 }
 
-const RightCapture: MoveConditionFunction = (self, board, pos) => {
-    return true;
+const RightCapture: MoveConditionFunction = (game: Game, pos: Position) => {
+    const pawn = game.board.getAtPos(pos);
+    if (!pawn || pawn.name !== "pawn" || pos.x === game.board.boardSize-1)
+        return false;
+
+    const y = pos.y + 1 * getColorMultiplier(pawn.color);
+    const x = pos.x + 1;
+    const capture = game.board.positionMap[y][x];
+    return (capture !== null && capture.color !== pawn.color);
 }
 
-const LeftSideEnPassant: MoveConditionFunction = (self, board, pos) => {
-    return !(pos.y === 0 || board[pos.y][pos.x-1]?.name !== "pawn");
+const LeftSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) => {
+    const pawn = game.board.getAtPos(pos);
+    if (!pawn || pawn.name !== "pawn" || pos.x === 0)
+        return false;
+
+    const capturePawn = game.board.positionMap[pos.y][pos.x-1];
+    if (!capturePawn || capturePawn.name !== "pawn" || capturePawn.color === pawn.color)
+        return false;
+
+    const lastMove = game.lastMoveRecord;
+    return (lastMove !== null && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
 }
 
-const RightSideEnPassant: MoveConditionFunction = (self, board, pos) => {
-    return true;
+const RightSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) => {
+    const pawn = game.board.getAtPos(pos);
+    if (!pawn || pawn.name !== "pawn" || pos.x === game.board.boardSize-1)
+        return false;
+
+    const capturePawn = game.board.positionMap[pos.y][pos.x+1];
+    if (!capturePawn || capturePawn.name !== "pawn" || capturePawn.color === pawn.color)
+        return false;
+
+    const lastMove = game.lastMoveRecord;
+    return (lastMove !== null && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
 }
 
-const DoubleStepMove: MoveConditionFunction = (self, board, pos) => {
-    return !(self.isMoved || board[pos.y+1][pos.x] !== null || board[pos.y+2][pos.x] !== null)
+const DoubleStepMove: MoveConditionFunction = (game: Game, pos: Position) => {
+    const pawn = game.board.getAtPos(pos);
+    if (!pawn || pawn.name !== "pawn" || pawn.isMoved)
+        return false;
+
+    const multiplier = getColorMultiplier(pawn.color);
+    return ChessRuleSet.isPathClear(game, pos, { x: pos.x, y: pos.y + 2 * multiplier });
 }
-
-
-/* Todo (After game object is made)
-    1. Add Sideways Capture
-    2. Add En Passant
-    */
 
 const PawnMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: false, canAttack: false },

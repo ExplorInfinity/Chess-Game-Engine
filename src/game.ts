@@ -1,6 +1,7 @@
 import {BoardLayout, Position, MoveRecord, MoveQuery, PieceColor, MoveRemark, BoardChange, PieceCode, PiecePositionMap} from "./types";
 import {Board} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
+import Piece from "./piece";
 
 const enum GameStatus {NOT_STARTED, ACTIVE, WHITE_WON, BLACK_WON, DRAW}
 const enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_DRAW, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
@@ -8,14 +9,14 @@ const enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONE
 const BoardSize = 8;
 
 const DefaultBoard: BoardLayout = [
-    ["bR", "bN", "bB", "bQ", "bK", "bB", "bK", "bR"],
+    ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
     ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    ["wR", "wN", "wB", "wQ", "wK", "wB", "wK", "wR"],
-    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]
+    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
+    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
 ];
 
 class Game
@@ -27,6 +28,10 @@ class Game
     private _currentResult: GameResult = GameResult.PENDING;
 
     public readonly board: Board = new Board(BoardSize);
+
+
+    public get lastMoveRecord(): Readonly<MoveRecord | null>
+        { return this.moveHistory ? this.moveHistory[this.moveHistory.length-1] : null; }
 
     public get currentTurnColor(): PieceColor   { return this._currentTurnColor; }
     public get currentState(): GameStatus       { return this._currentState; }
@@ -42,6 +47,11 @@ class Game
         return this.board.positionMap;
     }
 
+    public lastMovedPiece(): Piece | null
+    {
+        return this.lastMoveRecord ? this.board.getAtPos(this.lastMoveRecord.to) : null;
+    }
+
     public setBoardLayout(layout: BoardLayout = DefaultBoard)
     {
         if (this.board.isValidLayout(layout)) {
@@ -52,7 +62,7 @@ class Game
         return false;
     }
 
-    public makeMove(moveQuery: MoveQuery)
+    public makeMove(moveQuery: MoveQuery, { changeTurn = true } = {})
     {
         const piece = this.board.getAtPos(moveQuery.from);
         if (!piece)
@@ -62,7 +72,7 @@ class Game
 
         // Create Move Record for add to history
         const changes: BoardChange[] = [];
-        const moveRecord: MoveRecord = { from, changes };
+        const moveRecord: MoveRecord = { from, to, piece, changes };
         this.moveHistory.push(moveRecord);
 
         changes.push({ type: "move", piece, from, to });
@@ -74,7 +84,7 @@ class Game
         this.board.setAtPos(from, null);
         this.board.setAtPos(to, piece);
 
-        this.changeCurrentTurn();
+        if (changeTurn) this.changeCurrentTurn();
 
         return moveRecord;
     }
@@ -90,7 +100,7 @@ class Game
             {
                 case "move":
                     this.board.setAtPos(change.from, change.piece);
-                    this.board.setAtPos(change.to, change.piece);
+                    this.board.setAtPos(change.to, null);
                     break;
                 case "promotion":
                     this.board.setAtPos(change.to, null);
@@ -104,6 +114,13 @@ class Game
         this.changeCurrentTurn();
 
         return true;
+    }
+
+    public evaluateAndBacktrack(moveQuery: MoveQuery, fn: (game: Game) => any) {
+        this.makeMove(moveQuery);
+        const res = fn(this);
+        this.undoMove();
+        return res;
     }
 
     public simulateMoveAndCheckFor(moveQuery: MoveQuery, fn: (game: Game) => any)

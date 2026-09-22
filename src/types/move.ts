@@ -2,8 +2,9 @@ import type {BoardChange, PiecePositionMap} from "./board";
 import Piece from "../piece";
 import {PieceColor} from "./piece";
 import {Board} from "../board";
+import {Game} from "../game";
 
-type MoveConditionFunction = (board: Board, piece: Piece, pos: Position) => boolean;
+type MoveConditionFunction = (game: Game, pos: Position) => boolean;
 type MoveSpecialAction = (board: Board, moveRecord: MoveRecord) => void;
 
 interface Position {
@@ -27,6 +28,8 @@ interface MoveQuery {
 
 interface MoveRecord {
     from: Position;
+    to: Position;
+    piece: Piece;
     changes: BoardChange[];
 }
 
