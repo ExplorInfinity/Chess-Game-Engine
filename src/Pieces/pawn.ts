@@ -1,8 +1,9 @@
-import Piece from "../piece";
 import {Game} from "../game";
-import type {MoveConditionFunction, Move, PieceColor, Position, OnMove, MoveRecord} from "../types";
+import type {MoveConditionFunction, Move, Position, OnMove, MoveRecord} from "../types";
 import {ChessRuleSet} from "../chessRuleSet";
 import {getColorMultiplier} from "../utils/color";
+import type {PieceColor} from "../types/piece";
+import {Piece} from "./piece";
 
 const DoubleStepMove: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);

@@ -1,14 +1,15 @@
-import {BoardLayout, Position, MoveRecord, MoveQuery, PieceColor, MoveRemark, BoardChange, PieceCode, PiecePositionMap} from "./types";
-import {Board} from "./board";
+import type {Position, MoveRecord, MoveQuery, MoveRemark} from "./types";
+import type {PieceColor} from "./types/piece";
+import {Board, BoardChange, BoardStringLayout} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
-import Piece from "./piece";
+import {Piece} from "./Pieces";
 
 const enum GameStatus {NOT_STARTED, ACTIVE, WHITE_WON, BLACK_WON, DRAW}
 const enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_DRAW, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
 
-const BoardSize = 8;
+const BOARD_SIZE = 8;
 
-const DefaultBoard: BoardLayout = [
+const DefaultBoard: BoardStringLayout = [
     ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
     ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
     [null, null, null, null, null, null, null, null],
@@ -19,11 +20,6 @@ const DefaultBoard: BoardLayout = [
     ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
 ];
 
-interface MakeMoveOptions {
-    changeTurn?: boolean;
-    existingMoveRecord?: MoveRecord;
-}
-
 class Game
 {
     private moveHistory: MoveRecord[] = [];
@@ -32,7 +28,7 @@ class Game
     private _currentState: GameStatus = GameStatus.NOT_STARTED;
     private _currentResult: GameResult = GameResult.PENDING;
 
-    public readonly board: Board = new Board(BoardSize);
+    public readonly board: Board = new Board(BOARD_SIZE);
 
 
     public get lastMoveRecord(): Readonly<MoveRecord | null>
@@ -47,17 +43,12 @@ class Game
         this._currentTurnColor = this._currentTurnColor === "white" ? "black" : "white";
     }
 
-    public getBoardPositionMap()
-    {
-        return this.board.positionMap;
-    }
-
     public lastMovedPiece(): Piece | null
     {
         return this.lastMoveRecord ? this.board.getAtPos(this.lastMoveRecord.to) : null;
     }
 
-    public setBoardLayout(layout: BoardLayout = DefaultBoard)
+    public setBoardLayout(layout: BoardStringLayout = DefaultBoard)
     {
         if (this.board.isValidLayout(layout)) {
             this.board.applyLayout(layout);
@@ -153,7 +144,7 @@ class Game
         return res;
     }
 
-    public playMove(moveQuery: MoveQuery, { changeTurn = true }: MakeMoveOptions = {}): MoveRemark
+    public playMove(moveQuery: MoveQuery): MoveRemark
     {
         const { from, to } = moveQuery;
         const piece = this.board.getAtPos(from);
@@ -179,11 +170,11 @@ class Game
         if(move.onMove) move.onMove(this, moveRecord);
 
         // Change Turn
-        if (changeTurn) this.changeCurrentTurn();
+        this.changeCurrentTurn();
 
         return { result: "Legal Move", executed: true };
     }
 
 }
 
-export { Game, GameStatus, GameResult, BoardSize, DefaultBoard };
+export { Game, GameStatus, GameResult, BOARD_SIZE, DefaultBoard };

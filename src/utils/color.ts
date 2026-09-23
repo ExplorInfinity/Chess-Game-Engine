@@ -1,4 +1,4 @@
-import {PieceColor} from "../types";
+import type {PieceColor} from "../types/piece";
 
 function getColorMultiplier(color: PieceColor)
 {

@@ -1,9 +1,9 @@
-import {PiecePositionMap, BoardLayout, ColorPrefix, PieceCode, PieceColor, Position, PieceName} from "./types";
-import {Bishop, King, Knight, Pawn, Queen, Rook} from "./Pieces";
-import Piece from "./piece";
+import {Position} from "./types";
+import type {PiecePositionMap, BoardStringLayout} from './types/board';
+import {Piece, Bishop, King, Knight, Pawn, Queen, Rook, type PieceColor, type PieceColorCode, type PieceName, type PieceNameCode} from "./Pieces";
 
 type PieceConstructor = new (color: PieceColor) => Piece;
-const pieceClassMap: Record<PieceCode, PieceConstructor> = { "P": Pawn, "N": Knight, "B": Bishop, "R": Rook, "Q": Queen, "K": King };
+const pieceClassMap: Record<PieceNameCode, PieceConstructor> = { "P": Pawn, "N": Knight, "B": Bishop, "R": Rook, "Q": Queen, "K": King };
 
 class Board
 {
@@ -12,7 +12,7 @@ class Board
     constructor(
         public readonly boardSize: number
     ) {
-        this.positionMap = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null));
+        this.positionMap = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null)) as PiecePositionMap;
     }
 
     public isValidLayout(layout: (string | null)[][])
@@ -41,13 +41,13 @@ class Board
         return true;
     }
 
-    public applyLayout(layout: BoardLayout)
+    public applyLayout(layout: BoardStringLayout)
     {
         for (let row = 0; row < this.boardSize; ++row) {
             for (let col = 0; col < this.boardSize; ++col) {
                 const val = layout[row][col];
                 this.positionMap[row][col] =
-                    val ? new pieceClassMap[val[1] as PieceCode](val[0] as ColorPrefix === "w" ? "white" : "black") : null;
+                    val ? new pieceClassMap[val[1] as PieceNameCode](val[0] as PieceColorCode === "w" ? "white" : "black") : null;
             }
         }
     }
@@ -86,3 +86,4 @@ class Board
 }
 
 export { Board };
+export type { PiecePositionMap, BoardStringLayout, MoveChange, PromotionChange, CaptureChange, BoardChange } from './types/board';

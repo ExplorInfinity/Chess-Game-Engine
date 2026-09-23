@@ -1,7 +1,7 @@
-import type {IsValidMove, LegalPosition, PieceColor, PieceName, PiecePositionMap, Position} from "./types";
-import {Board} from "./board";
 import {Game, GameResult} from "./game";
 import {switchColor} from "./utils/color";
+import type {PieceColor, PieceName} from "./types/piece";
+import type {IsValidMove, LegalPosition, Position} from "./types";
 
 class ChessRuleSet
 {

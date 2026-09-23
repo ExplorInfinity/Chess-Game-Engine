@@ -1,7 +1,8 @@
-import Piece from "../piece";
-import type {Move, PieceColor, MoveConditionFunction, Position, OnMove, MoveRecord} from "../types";
+import type {Move, MoveConditionFunction, Position, OnMove, MoveRecord} from "../types";
 import {Game} from "../game";
 import {ChessRuleSet} from "../chessRuleSet";
+import type {PieceColor} from "../types/piece";
+import {Piece} from "./piece";
 
 const ShortCastleCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const { board } = game;

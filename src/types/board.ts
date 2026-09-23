@@ -1,11 +1,12 @@
-import Piece from "../piece";
-import {PieceLayoutCode} from "./piece";
-import {Position} from "./move";
+import type {PieceLayoutCode} from "./piece";
+import type {Position} from "./move";
+import type {SoftFixedArrayGrid} from "./util";
+import {BOARD_SIZE} from "../game";
+import {Piece} from "../Pieces";
 
-type PiecePositionMap = (Piece | null)[][];
+type BoardStringLayout = SoftFixedArrayGrid<(PieceLayoutCode | null), typeof BOARD_SIZE>;
 
-type BoardLayout =
-    (null | PieceLayoutCode)[][];
+type PiecePositionMap = SoftFixedArrayGrid<(Piece | null), typeof BOARD_SIZE>;
 
 interface MoveChange {
     type: "move";
@@ -28,4 +29,4 @@ interface CaptureChange {
 
 type BoardChange = MoveChange | PromotionChange | CaptureChange;
 
-export type { PiecePositionMap, BoardLayout, MoveChange, PromotionChange, CaptureChange, BoardChange };
+export type { PiecePositionMap, BoardStringLayout, MoveChange, PromotionChange, CaptureChange, BoardChange };

@@ -1,5 +1,6 @@
-import Piece from "../piece";
-import type {Move, PieceColor} from "../types";
+import type {Move} from "../types";
+import type {PieceColor} from "../types/piece";
+import {Piece} from "./piece";
 
 const QueenMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: true, canAttack: true },

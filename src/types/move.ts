@@ -1,8 +1,7 @@
-import type {BoardChange, PiecePositionMap} from "./board";
-import Piece from "../piece";
+import type {BoardChange} from "./board";
 import {PieceColor} from "./piece";
-import {Board} from "../board";
 import {Game} from "../game";
+import {Piece} from "../Pieces";
 
 type MoveConditionFunction = (game: Game, pos: Position) => boolean;
 type OnMove = (game: Game, moveRecord: MoveRecord) => void;

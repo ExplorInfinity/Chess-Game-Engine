@@ -1,4 +1,5 @@
-import type {PieceColor, PieceName, Move} from './types';
+import type {PieceColor, PieceName} from "../types/piece";
+import type {Move} from "../types";
 
 abstract class Piece
 {
@@ -12,4 +13,4 @@ abstract class Piece
     abstract getMoves(): readonly Move[];
 }
 
-export default Piece;
+export { Piece };
