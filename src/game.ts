@@ -19,6 +19,11 @@ const DefaultBoard: BoardLayout = [
     ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
 ];
 
+interface MakeMoveOptions {
+    changeTurn?: boolean;
+    existingMoveRecord?: MoveRecord;
+}
+
 class Game
 {
     private moveHistory: MoveRecord[] = [];
@@ -62,31 +67,39 @@ class Game
         return false;
     }
 
-    public makeMove(moveQuery: MoveQuery, { changeTurn = true } = {})
+    public makeMove(moveQuery: MoveQuery, moveRecord: MoveRecord)
     {
-        const piece = this.board.getAtPos(moveQuery.from);
-        if (!piece)
-            throw Error("[Fatal] Invalid call to makeMove!");
-
         const { from, to } = moveQuery;
+        const piece = this.board.getAtPos(from);
+        if (!piece) {
+            console.warn(`[Invalid Call] No piece at position (${from.x}, ${from.y}) at makeMove`);
+            return;
+        }
 
-        // Create Move Record for add to history
-        const changes: BoardChange[] = [];
-        const moveRecord: MoveRecord = { from, to, piece, changes };
-        this.moveHistory.push(moveRecord);
-
-        changes.push({ type: "move", piece, from, to });
+        moveRecord.changes.push({ type: "move", piece, from, to });
 
         const capture = this.board.getAtPos(to);
-        if (capture) changes.push({ type: "capture", piece: capture, from: to });
+        if (capture) this.makeCapture(to, moveRecord);
 
         // Apply changes to board
         this.board.setAtPos(from, null);
         this.board.setAtPos(to, piece);
 
-        if (changeTurn) this.changeCurrentTurn();
-
         return moveRecord;
+    }
+
+    public makeCapture(from: Position, moveRecord: MoveRecord)
+    {
+        const piece = this.board.getAtPos(from);
+        if (!piece) {
+            console.warn(`[Invalid Call] No piece at position (${from.x}, ${from.y}) at makeCapture`);
+            return;
+        }
+
+        const change: BoardChange = { type: "capture", piece, from };
+        moveRecord.changes.push(change);
+
+        this.board.setAtPos(from, null);
     }
 
     public undoMove()
@@ -117,9 +130,15 @@ class Game
     }
 
     public evaluateAndBacktrack(moveQuery: MoveQuery, fn: (game: Game) => any) {
-        this.makeMove(moveQuery);
+        const piece = this.board.getAtPos(moveQuery.from);
+        if (!piece) return null;
+
+        const moveRecord: MoveRecord = { piece, from: moveQuery.from, to: moveQuery.to, changes: [] };
+        this.makeMove(moveQuery, moveRecord);
+
         const res = fn(this);
         this.undoMove();
+
         return res;
     }
 
@@ -134,7 +153,7 @@ class Game
         return res;
     }
 
-    public playMove(moveQuery: MoveQuery): MoveRemark
+    public playMove(moveQuery: MoveQuery, { changeTurn = true }: MakeMoveOptions = {}): MoveRemark
     {
         const { from, to } = moveQuery;
         const piece = this.board.getAtPos(from);
@@ -148,11 +167,19 @@ class Game
         const move = ChessRuleSet.validateMove(this, from, to);
         if (!move.valid) return { result: "Illegal Move", executed: false };
 
+        // Create Move Record for add to history
+        const changes: BoardChange[] = [];
+        const moveRecord: MoveRecord = { from, to, piece, changes };
+        this.moveHistory.push(moveRecord);
+
         // Apply changes to board
-        const moveRecord = this.makeMove(moveQuery);
+        this.makeMove(moveQuery, moveRecord);
 
         // Calling onMove function
-        if(move.onMove) move.onMove(this.board, moveRecord);
+        if(move.onMove) move.onMove(this, moveRecord);
+
+        // Change Turn
+        if (changeTurn) this.changeCurrentTurn();
 
         return { result: "Legal Move", executed: true };
     }

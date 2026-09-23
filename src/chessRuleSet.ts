@@ -93,7 +93,7 @@ class ChessRuleSet
                     break;
                 }
 
-                pseudoLegalMoves.push({ x: currX, y: currY, onMove: move.specialAction ?? undefined });
+                pseudoLegalMoves.push({ x: currX, y: currY, onMove: move.onMove ?? undefined });
 
             } while(move.isSliding && !piecePositionMap[currY][currX]);
         }
@@ -144,15 +144,11 @@ class ChessRuleSet
         const pseudoLegalMoves = ChessRuleSet.getPseudoLegalMoves(game, piecePos);
 
         const { currentTurnColor } = game;
-        return pseudoLegalMoves.filter(move => {
-            const moveRecord = game.makeMove({ from: piecePos, to: move });
-            if (move.onMove) move.onMove(game.board, moveRecord);
-
-            const isKingInCheck = ChessRuleSet.isKingInCheck(game, currentTurnColor);
-            game.undoMove();
-
-            return !isKingInCheck;
-        });
+        return pseudoLegalMoves.filter(move =>
+            game.evaluateAndBacktrack(
+                { from: piecePos, to: move },
+                (game) => ChessRuleSet.isKingInCheck(game, currentTurnColor)
+            ));
     }
 
     public static hasPlayerAnyLegalMove(game: Game): boolean

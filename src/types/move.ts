@@ -5,7 +5,7 @@ import {Board} from "../board";
 import {Game} from "../game";
 
 type MoveConditionFunction = (game: Game, pos: Position) => boolean;
-type MoveSpecialAction = (board: Board, moveRecord: MoveRecord) => void;
+type OnMove = (game: Game, moveRecord: MoveRecord) => void;
 
 interface Position {
     x: number;
@@ -13,7 +13,7 @@ interface Position {
 }
 
 interface LegalPosition extends Position {
-    onMove?: MoveSpecialAction;
+    onMove?: OnMove;
 }
 
 interface MoveVec2 {
@@ -38,7 +38,7 @@ interface Move {
     isSliding: boolean;
     canAttack: boolean;
     condition?: MoveConditionFunction;
-    specialAction?: MoveSpecialAction;
+    onMove?: OnMove;
 }
 
 interface LegalMove {
@@ -68,7 +68,7 @@ type MoveRemark = LegalMove | InvalidMove | IllegalMove | InvalidTurn;
 
 interface IsValidMove {
     valid: boolean;
-    onMove?: MoveSpecialAction;
+    onMove?: OnMove;
 }
 
-export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, Move, MoveQuery, MoveRecord, MoveRemark, IsValidMove };
+export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, OnMove, Move, MoveQuery, MoveRecord, MoveRemark, IsValidMove };
