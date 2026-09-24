@@ -20,9 +20,9 @@ interface MoveVec2 {
     dy: number;
 }
 
-interface MoveQuery {
-    from: Position;
-    to: Position;
+interface MoveQuery<T extends Position | LegalPosition> {
+    from: T;
+    to: T;
 }
 
 interface MoveRecord {

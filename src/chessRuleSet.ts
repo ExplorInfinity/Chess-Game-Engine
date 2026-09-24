@@ -1,7 +1,9 @@
-import {Game, GameResult} from "./game";
+import {Game, GameResult, BOARD_SIZE} from "./game";
 import {switchColor} from "./utils/color";
 import type {PieceColor, PieceName} from "./types/piece";
-import type {IsValidMove, LegalPosition, Position} from "./types";
+import type {IsValidMove, LegalPosition, Position, SoftFixedArrayGrid} from "./types";
+
+type attackGrid = SoftFixedArrayGrid<boolean, typeof BOARD_SIZE>;
 
 class ChessRuleSet
 {
@@ -18,7 +20,7 @@ class ChessRuleSet
         return piecePos;
     }
 
-    private static markAttackedSquares(game: Game, piecePos: Position, attackedSquares: boolean[][]): void
+    private static markAttackedSquares(game: Game, piecePos: Position, attackedSquares: attackGrid): void
     {
         const { board } = game;
         const { positionMap } = board;
@@ -27,7 +29,7 @@ class ChessRuleSet
         if (!piece) return;
 
         for (const move of piece.getMoves()) {
-            if (move.condition && !move.condition(game, piecePos))
+            if (!move.canAttack)
                 continue;
 
             const dx = move.vec.dx;
@@ -51,12 +53,12 @@ class ChessRuleSet
         }
     }
 
-    private static getAttackedSquaresByColor(game: Game, color: PieceColor): boolean[][]
+    private static getAttackedSquaresByColor(game: Game, color: PieceColor): attackGrid
     {
         const { board } = game;
         const { boardSize, positionMap } = board;
 
-        const attackedSquares: boolean[][] = Array.from({ length: boardSize }, () => Array(boardSize).fill(false));
+        const attackedSquares: attackGrid = Array.from({ length: boardSize }, () => Array(boardSize).fill(false)) as attackGrid;
 
         for (let y = 0; y < boardSize; ++y)
             for (let x = 0; x < boardSize; ++x)
@@ -147,7 +149,7 @@ class ChessRuleSet
         return pseudoLegalMoves.filter(move =>
             game.evaluateAndBacktrack(
                 { from: piecePos, to: move },
-                (game) => ChessRuleSet.isKingInCheck(game, currentTurnColor)
+                (game) => !ChessRuleSet.isKingInCheck(game, currentTurnColor)
             ));
     }
 
@@ -183,8 +185,8 @@ class ChessRuleSet
         if (a.x != b.x && a.y != b.y && dx != dy)
             return false;
 
-        const stepX = Math.abs(b.x - a.x);
-        const stepY = Math.abs(b.y - a.y);
+        const stepX = Math.sign(b.x - a.x);
+        const stepY = Math.sign(b.y - a.y);
 
         let x = a.x + stepX, y = a.y + stepY;
         while (x !== b.x || y !== b.y) {
@@ -208,8 +210,8 @@ class ChessRuleSet
         if (start.x != end.x && start.y != end.y && dx != dy)
             return false;
 
-        const stepX = Math.abs(end.x - start.x);
-        const stepY = Math.abs(end.y - start.y);
+        const stepX = Math.sign(end.x - start.x);
+        const stepY = Math.sign(end.y - start.y);
 
         let x = start.x, y = start.y;
         while (x !== end.x || y !== end.y) {

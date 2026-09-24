@@ -1,4 +1,4 @@
-import type {Position, MoveRecord, MoveQuery, MoveRemark} from "./types";
+import type {Position, MoveRecord, MoveQuery, MoveRemark, LegalPosition} from "./types";
 import type {PieceColor} from "./types/piece";
 import {Board, BoardChange, BoardStringLayout} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
@@ -58,7 +58,7 @@ class Game
         return false;
     }
 
-    public makeMove(moveQuery: MoveQuery, moveRecord: MoveRecord)
+    public makeMove(moveQuery: MoveQuery<Position>, moveRecord: MoveRecord)
     {
         const { from, to } = moveQuery;
         const piece = this.board.getAtPos(from);
@@ -93,7 +93,7 @@ class Game
         this.board.setAtPos(from, null);
     }
 
-    public undoMove()
+    public undoMove({ changeTurn = true } = {})
     {
         const moveRecord = this.moveHistory.pop();
         if (!moveRecord) return false;
@@ -115,36 +115,23 @@ class Game
             }
         }
 
-        this.changeCurrentTurn();
+        --moveRecord.piece.movesPlayed;
+        if(changeTurn) this.changeCurrentTurn();
 
         return true;
     }
 
-    public evaluateAndBacktrack(moveQuery: MoveQuery, fn: (game: Game) => any) {
+    public evaluateAndBacktrack(moveQuery: MoveQuery<LegalPosition>, fn: (game: Game) => any) {
         const piece = this.board.getAtPos(moveQuery.from);
         if (!piece) return null;
 
-        const moveRecord: MoveRecord = { piece, from: moveQuery.from, to: moveQuery.to, changes: [] };
-        this.makeMove(moveQuery, moveRecord);
+        this.playMoveWithoutValidation(moveQuery);
 
-        const res = fn(this);
-        this.undoMove();
-
-        return res;
+        try     { return fn(this); }
+        finally { this.undoMove(); }
     }
 
-    public simulateMoveAndCheckFor(moveQuery: MoveQuery, fn: (game: Game) => any)
-    {
-        const remark = this.playMove(moveQuery);
-        if (!remark.executed)
-            return null;
-
-        const res = fn(this);
-        this.undoMove();
-        return res;
-    }
-
-    public playMove(moveQuery: MoveQuery): MoveRemark
+    public playMoveWithValidation(moveQuery: MoveQuery<Position>): MoveRemark
     {
         const { from, to } = moveQuery;
         const piece = this.board.getAtPos(from);
@@ -164,6 +151,7 @@ class Game
         this.moveHistory.push(moveRecord);
 
         // Apply changes to board
+        ++piece.movesPlayed;
         this.makeMove(moveQuery, moveRecord);
 
         // Calling onMove function
@@ -173,6 +161,29 @@ class Game
         this.changeCurrentTurn();
 
         return { result: "Legal Move", executed: true };
+    }
+
+    public playMoveWithoutValidation(moveQuery: MoveQuery<LegalPosition>)
+    {
+        const { from, to } = moveQuery;
+        const piece = this.board.getAtPos(from);
+        if (!piece)
+            throw Error(`[Invalid Call] No piece at position (${from.x}, ${from.y}) at playMoveWithoutValidation`);
+
+        // Create Move Record for add to history
+        const changes: BoardChange[] = [];
+        const moveRecord: MoveRecord = { from, to, piece, changes };
+        this.moveHistory.push(moveRecord);
+
+        // Apply changes to board
+        ++piece.movesPlayed;
+        this.makeMove(moveQuery, moveRecord);
+
+        // Calling onMove function
+        if(to.onMove) to.onMove(this, moveRecord);
+
+        // Change Turn
+        this.changeCurrentTurn();
     }
 
 }

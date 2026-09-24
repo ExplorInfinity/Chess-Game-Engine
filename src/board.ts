@@ -1,6 +1,19 @@
 import {Position} from "./types";
 import type {PiecePositionMap, BoardStringLayout} from './types/board';
-import {Piece, Bishop, King, Knight, Pawn, Queen, Rook, type PieceColor, type PieceColorCode, type PieceName, type PieceNameCode} from "./Pieces";
+import {
+    Piece,
+    Bishop,
+    King,
+    Knight,
+    Pawn,
+    Queen,
+    Rook,
+    type PieceColor,
+    type PieceColorCode,
+    type PieceName,
+    type PieceNameCode,
+    type PieceLayoutCode
+} from "./Pieces";
 
 type PieceConstructor = new (color: PieceColor) => Piece;
 const pieceClassMap: Record<PieceNameCode, PieceConstructor> = { "P": Pawn, "N": Knight, "B": Bishop, "R": Rook, "Q": Queen, "K": King };
@@ -57,6 +70,20 @@ class Board
         for (let row = 0; row < this.boardSize; ++row)
             for (let col = 0; col < this.boardSize; ++col)
                 this.positionMap[row][col] = null;
+    }
+
+    public getStrLayout()
+    {
+        const boardStrLayout: BoardStringLayout = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null)) as BoardStringLayout;
+        for (let row = 0; row < this.boardSize; ++row) {
+            for (let col = 0; col < this.boardSize; ++col) {
+                const piece = this.positionMap[row][col];
+                if (piece)
+                    boardStrLayout[row][col] = `${piece.color[0]}${piece.name[0].toLocaleUpperCase()}` as PieceLayoutCode;
+            }
+        }
+
+        return boardStrLayout;
     }
 
     public setAtPos(pos: Position, piece: Piece | null)

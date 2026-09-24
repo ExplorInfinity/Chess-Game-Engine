@@ -3,12 +3,14 @@ import type {Move} from "../types";
 
 abstract class Piece
 {
-    isMoved: boolean = false;
+    movesPlayed: number = 0;
 
     protected constructor(
         public readonly color: PieceColor,
         public readonly name: PieceName
     ) {}
+
+    public get isMoved(): boolean { return this.movesPlayed !== 0; }
 
     abstract getMoves(): readonly Move[];
 }
