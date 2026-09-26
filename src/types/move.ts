@@ -40,34 +40,40 @@ interface Move {
     onMove?: OnMove;
 }
 
-interface LegalMove {
+interface LegalMoveRemark {
     result: "Legal Move";
     executed: true;
 }
 
-interface InvalidMove {
+interface InvalidMoveRemark {
     result: "Invalid Move";
     remark?: string;
     executed: false;
 }
 
-interface IllegalMove {
+interface IllegalMoveRemark {
     result: "Illegal Move";
     remark?: string;
     executed: false;
 }
 
-interface InvalidTurn {
+interface InvalidTurnRemark {
     result: "Invalid Turn";
     remark?: `Wait for ${PieceColor}'s turn!`;
     executed: false;
 }
 
-type MoveRemark = LegalMove | InvalidMove | IllegalMove | InvalidTurn;
+type MoveRemark = LegalMoveRemark | InvalidMoveRemark | IllegalMoveRemark | InvalidTurnRemark;
 
-interface IsValidMove {
-    valid: boolean;
-    onMove?: OnMove;
+interface ValidMove {
+    valid: false;
 }
 
-export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, OnMove, Move, MoveQuery, MoveRecord, MoveRemark, IsValidMove };
+interface InvalidMove {
+    valid: true;
+    move: LegalPosition;
+}
+
+type IsValidMove = ValidMove | InvalidMove;
+
+export type { Position, LegalPosition, MoveVec2, MoveConditionFunction, OnMove, Move, MoveQuery, MoveRecord, MoveRemark, ValidMove, InvalidMove, IsValidMove };

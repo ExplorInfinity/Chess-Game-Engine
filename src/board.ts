@@ -12,7 +12,7 @@ import {
     type PieceColorCode,
     type PieceName,
     type PieceNameCode,
-    type PieceLayoutCode
+    type PieceLayoutCode, PieceCode
 } from "./Pieces";
 
 type PieceConstructor = new (color: PieceColor) => Piece;
@@ -79,7 +79,7 @@ class Board
             for (let col = 0; col < this.boardSize; ++col) {
                 const piece = this.positionMap[row][col];
                 if (piece)
-                    boardStrLayout[row][col] = `${piece.color[0]}${piece.name[0].toLocaleUpperCase()}` as PieceLayoutCode;
+                    boardStrLayout[row][col] = `${piece.color[0]}${PieceCode[piece.name]}` as PieceLayoutCode;
             }
         }
 

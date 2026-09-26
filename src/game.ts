@@ -1,11 +1,17 @@
-import type {Position, MoveRecord, MoveQuery, MoveRemark, LegalPosition} from "./types";
+import type {Position, MoveRecord, MoveQuery, MoveRemark, LegalPosition, StaticMethodsMatching} from "./types";
 import type {PieceColor} from "./types/piece";
 import {Board, BoardChange, BoardStringLayout} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
 import {Piece} from "./Pieces";
+import {switchColor} from "./utils/color";
 
-const enum GameStatus {NOT_STARTED, ACTIVE, WHITE_WON, BLACK_WON, DRAW}
-const enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_DRAW, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
+enum GameStatus {NOT_STARTED, ACTIVE, WHITE_WON, BLACK_WON, DRAW}
+enum GameResult {PENDING = -1, ABORT, RESIGN, CHECKMATE, TIMEOUT, ABANDONED, STALEMATE, THREE_FOLD_REPETITION, FIFTY_MOVE_RULE, DRAW_BY_AGREEMENT, DRAW_BY_INSUFFICIENT_MATERIAL}
+
+interface GameOutcome {
+    status: GameStatus;
+    result: GameResult;
+}
 
 const BOARD_SIZE = 8;
 
@@ -25,7 +31,7 @@ class Game
     private moveHistory: MoveRecord[] = [];
 
     private _currentTurnColor: PieceColor = "white";
-    private _currentState: GameStatus = GameStatus.NOT_STARTED;
+    private _currentStatus: GameStatus = GameStatus.NOT_STARTED;
     private _currentResult: GameResult = GameResult.PENDING;
 
     public readonly board: Board = new Board(BOARD_SIZE);
@@ -35,12 +41,39 @@ class Game
         { return this.moveHistory ? this.moveHistory[this.moveHistory.length-1] : null; }
 
     public get currentTurnColor(): PieceColor   { return this._currentTurnColor; }
-    public get currentState(): GameStatus       { return this._currentState; }
+    public get currentStatus(): GameStatus       { return this._currentStatus; }
     public get currentResult(): GameResult      { return this._currentResult; }
 
     private changeCurrentTurn()
     {
         this._currentTurnColor = this._currentTurnColor === "white" ? "black" : "white";
+    }
+
+    private evaluateStatus(): GameOutcome
+    {
+        if (ChessRuleSet.isCheckmated(this)) {
+            const winner = switchColor(this.currentTurnColor);
+
+            return {
+                status: (winner === "white" ? GameStatus.WHITE_WON : GameStatus.BLACK_WON),
+                result: GameResult.CHECKMATE
+            };
+        }
+
+        const drawConditions: [StaticMethodsMatching<typeof ChessRuleSet, (game: Game) => boolean>, GameResult][] =
+        [
+            [ChessRuleSet.isDrawByStalemate,                GameResult.STALEMATE],
+            [ChessRuleSet.isDrawByThreeFoldRepetition,      GameResult.THREE_FOLD_REPETITION],
+            [ChessRuleSet.isDrawByInsufficientMaterial,     GameResult.DRAW_BY_INSUFFICIENT_MATERIAL],
+            [ChessRuleSet.isDrawByFiftyMoveRule,            GameResult.FIFTY_MOVE_RULE],
+        ];
+
+        for(const [condition, result] of drawConditions) {
+            if(condition(this))
+                return { status: GameStatus.DRAW, result };
+        }
+
+        return { status: GameStatus.ACTIVE, result: GameResult.PENDING };
     }
 
     public lastMovedPiece(): Piece | null
@@ -125,7 +158,7 @@ class Game
         const piece = this.board.getAtPos(moveQuery.from);
         if (!piece) return null;
 
-        this.playMoveWithoutValidation(moveQuery);
+        this.playMove(moveQuery, { changeGameOutcome: false });
 
         try     { return fn(this); }
         finally { this.undoMove(); }
@@ -142,28 +175,15 @@ class Game
         if (piece?.color !== this._currentTurnColor)
             return { result: "Invalid Turn", remark: `Wait for ${this._currentTurnColor}'s turn!`, executed: false };
 
-        const move = ChessRuleSet.validateMove(this, from, to);
-        if (!move.valid) return { result: "Illegal Move", executed: false };
+        const validation = ChessRuleSet.validateMove(this, from, to);
+        if (!validation.valid) return { result: "Illegal Move", executed: false };
 
-        // Create Move Record for add to history
-        const changes: BoardChange[] = [];
-        const moveRecord: MoveRecord = { from, to, piece, changes };
-        this.moveHistory.push(moveRecord);
-
-        // Apply changes to board
-        ++piece.movesPlayed;
-        this.makeMove(moveQuery, moveRecord);
-
-        // Calling onMove function
-        if(move.onMove) move.onMove(this, moveRecord);
-
-        // Change Turn
-        this.changeCurrentTurn();
+        this.playMove({ from, to: validation.move })
 
         return { result: "Legal Move", executed: true };
     }
 
-    public playMoveWithoutValidation(moveQuery: MoveQuery<LegalPosition>)
+    public playMove(moveQuery: MoveQuery<LegalPosition>, { changeGameOutcome = true } = {})
     {
         const { from, to } = moveQuery;
         const piece = this.board.getAtPos(from);
@@ -184,8 +204,15 @@ class Game
 
         // Change Turn
         this.changeCurrentTurn();
+
+        // Set results of game
+        if (changeGameOutcome) {
+            const { status, result } = this.evaluateStatus();
+            this._currentStatus = status;
+            this._currentResult = result;
+        }
     }
 
 }
 
-export { Game, GameStatus, GameResult, BOARD_SIZE, DefaultBoard };
+export { Game, GameStatus, GameResult, GameOutcome, BOARD_SIZE, DefaultBoard };

@@ -1,4 +1,4 @@
-import {Game, GameResult, BOARD_SIZE} from "./game";
+import {BOARD_SIZE, Game} from "./game";
 import {switchColor} from "./utils/color";
 import type {PieceColor, PieceName} from "./types/piece";
 import type {IsValidMove, LegalPosition, Position, SoftFixedArrayGrid} from "./types";
@@ -23,7 +23,7 @@ class ChessRuleSet
     private static markAttackedSquares(game: Game, piecePos: Position, attackedSquares: attackGrid): void
     {
         const { board } = game;
-        const { positionMap } = board;
+        const { boardSize, positionMap } = board;
 
         const piece = board.getAtPos(piecePos);
         if (!piece) return;
@@ -38,9 +38,7 @@ class ChessRuleSet
 
             do {
                 currX += dx; currY += dy;
-                if (currX < 0 || currY < 0 ||
-                    currX >= positionMap.length ||
-                    currY >= positionMap[0].length ||
+                if (currX < 0 || currY < 0 || currX >= boardSize || currY >= boardSize ||
                     (!move.canAttack && positionMap[currY][currX]) ||
                     positionMap[currY][currX]?.color === piece.color)
                 {
@@ -101,11 +99,6 @@ class ChessRuleSet
         }
 
         return pseudoLegalMoves;
-    }
-
-    public static checkStatus(game: Game): GameResult
-    {
-        return GameResult.PENDING;
     }
 
     public static isKingInCheck(game: Game, color: PieceColor): boolean
@@ -171,7 +164,10 @@ class ChessRuleSet
         const legalMoves = ChessRuleSet.getLegalMoves(game, from);
         const foundMove = legalMoves.find(move => move.x === to.x && move.y === to.y);
 
-        return { valid: foundMove !== undefined, onMove: foundMove?.onMove };
+        if (!foundMove)
+            return { valid: false };
+
+        return { valid: true, move: foundMove };
     }
 
     public static canSeeEachOther(game: Game, a: Position, b: Position)
