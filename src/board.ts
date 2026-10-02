@@ -1,19 +1,7 @@
 import {Position} from "./types";
 import type {PiecePositionMap, BoardStringLayout} from './types/board';
-import {
-    Piece,
-    Bishop,
-    King,
-    Knight,
-    Pawn,
-    Queen,
-    Rook,
-    type PieceColor,
-    type PieceColorCode,
-    type PieceName,
-    type PieceNameCode,
-    type PieceLayoutCode, PieceCode
-} from "./Pieces";
+import {Piece, Bishop, King, Knight, Pawn, Queen, Rook, type PieceColor, type PieceColorCode, type PieceName, type PieceNameCode, type PieceLayoutCode} from "./Pieces";
+import {PieceCode} from "./constants/piece";
 
 type PieceConstructor = new (color: PieceColor) => Piece;
 const pieceClassMap: Record<PieceNameCode, PieceConstructor> = { "P": Pawn, "N": Knight, "B": Bishop, "R": Rook, "Q": Queen, "K": King };
@@ -26,6 +14,39 @@ class Board
         public readonly boardSize: number
     ) {
         this.positionMap = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null)) as PiecePositionMap;
+    }
+
+    public static isSame(b1: Board, b2: Board)
+    {
+        if (b1.boardSize != b2.boardSize)
+            return false;
+
+        const { positionMap: map1, boardSize } = b1;
+        const { positionMap: map2 } = b2;
+
+        for (let y = 0; y < boardSize; ++y)
+            for (let x = 0; x < boardSize; ++x) {
+                const p1 = map1[y][x];
+                const p2 = map2[y][x];
+                if ((p1 === null && p2 !== null) || (p1 !== null && p2 === null))
+                    return false;
+
+                if (p1 !== null && p2 !== null && !Piece.isSameType(p1, p2))
+                    return false;
+            }
+
+        return true;
+    }
+
+    public copyBoard(): Board
+    {
+        const board = new Board(this.boardSize);
+
+        for (let y = 0; y < this.boardSize; ++y)
+            for (let x = 0; x < this.boardSize; ++x)
+                board.positionMap[y][x] = this.positionMap[y][x];
+
+        return board;
     }
 
     public isValidLayout(layout: (string | null)[][])

@@ -9,7 +9,7 @@ class ChessRuleSet
 {
     private constructor() {}
 
-    private static findPiece(game: Game, pieceColor: PieceColor, pieceName: PieceName): Position
+    private static getPiecePos(game: Game, pieceColor: PieceColor, pieceName: PieceName): Position
     {
         const piecePos = game.board.findPiece(pieceColor, pieceName);
         if (!piecePos)
@@ -103,7 +103,7 @@ class ChessRuleSet
 
     public static isKingInCheck(game: Game, color: PieceColor): boolean
     {
-        const kingPos = ChessRuleSet.findPiece(game, color, "king");
+        const kingPos = ChessRuleSet.getPiecePos(game, color, "king");
         const enemyAttackedSquares = ChessRuleSet.getAttackedSquaresByColor(game, switchColor(color));
 
         return enemyAttackedSquares[kingPos.y][kingPos.x];
@@ -121,7 +121,7 @@ class ChessRuleSet
 
     public static isDrawByThreeFoldRepetition(game: Game): boolean
     {
-        return false;
+        return game.zobristUpdater.checkThreeFoldRepetition(game);
     }
 
     public static isDrawByFiftyMoveRule(game: Game): boolean
@@ -159,7 +159,7 @@ class ChessRuleSet
         return false;
     }
 
-    public static validateMove(game: Game, from: Position, to: Position): IsValidMove
+    public static validateAsLegalMove(game: Game, from: Position, to: Position): IsValidMove
     {
         const legalMoves = ChessRuleSet.getLegalMoves(game, from);
         const foundMove = legalMoves.find(move => move.x === to.x && move.y === to.y);

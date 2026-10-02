@@ -1,10 +1,10 @@
-import type {BoardChange} from "./board";
+import type {BoardChange, CaptureChange, MoveChange, PromotionChange} from "./board";
 import {PieceColor} from "./piece";
 import {Game} from "../game";
 import {Piece} from "../Pieces";
 
 type MoveConditionFunction = (game: Game, pos: Position) => boolean;
-type OnMove = (game: Game, moveRecord: MoveRecord) => void;
+type OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord) => void;
 
 interface Position {
     x: number;
@@ -20,16 +20,15 @@ interface MoveVec2 {
     dy: number;
 }
 
-interface MoveQuery<T extends Position | LegalPosition> {
+interface MoveQuery<T extends Position> {
     from: T;
     to: T;
 }
 
 interface MoveRecord {
-    from: Position;
-    to: Position;
-    piece: Piece;
-    changes: BoardChange[];
+    moves: MoveChange[],
+    captures: CaptureChange[],
+    promotions: PromotionChange[]
 }
 
 interface Move {

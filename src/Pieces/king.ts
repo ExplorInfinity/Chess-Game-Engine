@@ -1,16 +1,19 @@
-import type {Move, MoveConditionFunction, Position, OnMove, MoveRecord} from "../types";
+import type {Move, MoveConditionFunction, Position, OnMove, MoveRecord, MoveQuery} from "../types";
 import {Game} from "../game";
 import {ChessRuleSet} from "../chessRuleSet";
 import type {PieceColor} from "../types/piece";
 import {Piece} from "./piece";
+import type {Rook} from "./rook";
+import {checkPieceName} from "../utils/piece";
+import type {MoveChange} from "../types/board";
 
 const ShortCastleCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const { board } = game;
     const king = board.getAtPos(pos);
     const rook = board.positionMap[pos.y][board.boardSize-1];
 
-    if (!king || king.isMoved || king.name !== "king" ||
-        !rook || rook.isMoved || rook.name !== "rook" ||
+    if (!checkPieceName(king, "king") || king.isMoved ||
+        !checkPieceName(rook, "rook") || rook.isMoved ||
         rook.color !== king.color ||
         ChessRuleSet.isKingInCheck(game, king.color) ||
         !ChessRuleSet.canSeeEachOther(game, pos, { x: board.boardSize-1, y: pos.y }))
@@ -35,11 +38,11 @@ const LongCastleCondition: MoveConditionFunction = (game: Game, pos: Position) =
     const king = board.getAtPos(pos);
     const rook = board.positionMap[pos.y][0];
 
-    if (!king || king.isMoved || king.name !== "king" ||
-        !rook || rook.isMoved || rook.name !== "rook" ||
+    if (!checkPieceName(king, "king") || king.isMoved ||
+        !checkPieceName(rook, "rook") || rook.isMoved ||
         rook.color !== king.color ||
         ChessRuleSet.isKingInCheck(game, king.color) ||
-        !ChessRuleSet.canSeeEachOther(game, pos, { x: 0, y: pos.y }))
+        !ChessRuleSet.canSeeEachOther(game, pos, { x: board.boardSize-1, y: pos.y }))
     {
         return false;
     }
@@ -56,22 +59,22 @@ const LongCastleCondition: MoveConditionFunction = (game: Game, pos: Position) =
     return true;
 }
 
-const OnShortCastle: OnMove = (game: Game, moveRecord: MoveRecord) => {
-    const { from: startKingPos, to: endKingPos } = moveRecord;
+const OnShortCastle: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord) => {
+    const { from: startKingPos, to: endKingPos } = moveQuery;
 
-    game.makeMove({
-        from: { x: game.board.boardSize-1, y: startKingPos.y },
-        to:   { x: endKingPos.x-1, y: endKingPos.y }
-    }, moveRecord);
+    game.addMove(moveRecord, {
+        from: { x: game.board.boardSize - 1, y: startKingPos.y },
+        to:   { x: endKingPos.x - 1, y: endKingPos.y }
+    });
 }
 
-const OnLongCastle: OnMove = (game: Game, moveRecord: MoveRecord) => {
-    const { from: startKingPos, to: endKingPos } = moveRecord;
+const OnLongCastle: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord) => {
+    const { from: startKingPos, to: endKingPos } = moveQuery;
 
-    game.makeMove({
+    game.addMove(moveRecord, {
         from: { x: 0, y: startKingPos.y },
-        to:   { x: endKingPos.x+1, y: endKingPos.y }
-    }, moveRecord);
+        to:   { x: endKingPos.x + 1, y: endKingPos.y }
+    });
 }
 
 const KingMoves: Move[] = [
@@ -100,6 +103,29 @@ class King extends Piece
     public getMoves(): readonly Move[]
     {
         return King.moves;
+    }
+
+    private static canCastle(king: King, rook: Rook)
+    {
+        return (!king.isMoved && !rook.isMoved && king.color === rook.color);
+    }
+
+    public static canShortCastle(game: Game, pos: Position)
+    {
+        const { board } = game;
+        const king = board.getAtPos(pos);
+        const rook = board.positionMap[pos.y][board.boardSize-1];
+
+        return (checkPieceName(king, "king") && checkPieceName(rook, "rook") && King.canCastle(king, rook));
+    }
+
+    public static canLongCastle(game: Game, pos: Position)
+    {
+        const { board } = game;
+        const king = board.getAtPos(pos);
+        const rook = board.positionMap[pos.y][0];
+
+        return (checkPieceName(king, "king") && checkPieceName(rook, "rook") && King.canCastle(king, rook));
     }
 }
 

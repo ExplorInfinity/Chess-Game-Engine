@@ -1,11 +1,11 @@
 import {Game} from "../game";
-import type {MoveConditionFunction, Move, Position, OnMove, MoveRecord} from "../types";
+import type {MoveConditionFunction, Move, Position, OnMove, MoveRecord, MoveQuery} from "../types";
 import {ChessRuleSet} from "../chessRuleSet";
 import {getColorMultiplier} from "../utils/color";
 import type {PieceColor} from "../types/piece";
 import {Piece} from "./piece";
 
-const DoubleStepMove: MoveConditionFunction = (game: Game, pos: Position) => {
+const DoubleStepMoveCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);
     if (!pawn || pawn.name !== "pawn" || pawn.isMoved)
         return false;
@@ -14,7 +14,7 @@ const DoubleStepMove: MoveConditionFunction = (game: Game, pos: Position) => {
     return ChessRuleSet.isPathClear(game, pos, { x: pos.x, y: pos.y + 2 * multiplier });
 }
 
-const LeftCapture: MoveConditionFunction = (game: Game, pos: Position) => {
+const LeftCaptureCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);
     if (!pawn || pawn.name !== "pawn" || pos.x === 0)
         return false;
@@ -25,7 +25,7 @@ const LeftCapture: MoveConditionFunction = (game: Game, pos: Position) => {
     return (capture !== null && capture.color !== pawn.color);
 }
 
-const RightCapture: MoveConditionFunction = (game: Game, pos: Position) => {
+const RightCaptureCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);
     if (!pawn || pawn.name !== "pawn" || pos.x === game.board.boardSize-1)
         return false;
@@ -36,7 +36,7 @@ const RightCapture: MoveConditionFunction = (game: Game, pos: Position) => {
     return (capture !== null && capture.color !== pawn.color);
 }
 
-const LeftSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) => {
+const LeftSideEnPassantCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);
     if (!pawn || pawn.name !== "pawn" || pos.x === 0)
         return false;
@@ -45,11 +45,11 @@ const LeftSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) => 
     if (!capturePawn || capturePawn.name !== "pawn" || capturePawn.color === pawn.color)
         return false;
 
-    const lastMove = game.lastMoveRecord;
-    return (lastMove !== null && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
+    const lastMove = game.lastMoveRecord?.moves[0];
+    return (lastMove !== undefined && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
 }
 
-const RightSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) => {
+const RightSideEnPassantCondition: MoveConditionFunction = (game: Game, pos: Position) => {
     const pawn = game.board.getAtPos(pos);
     if (!pawn || pawn.name !== "pawn" || pos.x === game.board.boardSize-1)
         return false;
@@ -58,36 +58,36 @@ const RightSideEnPassant: MoveConditionFunction = (game: Game, pos: Position) =>
     if (!capturePawn || capturePawn.name !== "pawn" || capturePawn.color === pawn.color)
         return false;
 
-    const lastMove = game.lastMoveRecord;
-    return (lastMove !== null && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
+    const lastMove = game.lastMoveRecord?.moves[0];
+    return (lastMove !== undefined && lastMove.piece === capturePawn && Math.abs(lastMove.from.y - lastMove.to.y) === 2);
 }
 
-const OnLeftSideEnPassant: OnMove = (game: Game, moveRecord: MoveRecord)=> {
-    const { from } = moveRecord;
+const OnLeftSideEnPassant: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord)=> {
+    const { from } = moveQuery;
     const capturePawnPos: Position = { x: from.x - 1, y: from.y };
-    game.makeCapture(capturePawnPos, moveRecord);
+    game.addCapture(moveRecord, capturePawnPos);
 }
 
-const OnRightSideEnPassant: OnMove = (game: Game, moveRecord: MoveRecord)=> {
-    const { from } = moveRecord;
+const OnRightSideEnPassant: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord)=> {
+    const { from } = moveQuery;
     const capturePawnPos: Position = { x: from.x + 1, y: from.y };
-    game.makeCapture(capturePawnPos, moveRecord);
+    game.addCapture(moveRecord, capturePawnPos);
 }
 
 // todo: Handle pawn promotions
-const HandlePromotion: OnMove = (game: Game, moveRecord: MoveRecord) => {
+const HandlePromotion: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord) => {
 
 }
 
 const PawnMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: false, canAttack: false, onMove: HandlePromotion },
-    { vec: { dx:  0, dy:  2 }, isSliding: false, canAttack: false, condition: DoubleStepMove }, // Double Step Move
+    { vec: { dx:  0, dy:  2 }, isSliding: false, canAttack: false, condition: DoubleStepMoveCondition }, // Double Step Move
 
-    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: true, condition: LeftCapture }, // Left Capture
-    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: true, condition: RightCapture }, // Right Capture
+    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: true, condition: LeftCaptureCondition }, // Left Capture
+    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: true, condition: RightCaptureCondition }, // Right Capture
 
-    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: false, condition: LeftSideEnPassant, onMove: OnLeftSideEnPassant }, // Left EnPassant
-    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: false, condition: RightSideEnPassant, onMove: OnRightSideEnPassant }, // Right EnPassant
+    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: false, condition: LeftSideEnPassantCondition, onMove: OnLeftSideEnPassant }, // Left EnPassant
+    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: false, condition: RightSideEnPassantCondition, onMove: OnRightSideEnPassant }, // Right EnPassant
 ];
 
 class Pawn extends Piece
@@ -102,6 +102,16 @@ class Pawn extends Piece
     public getMoves(): readonly Move[]
     {
         return Pawn.moves;
+    }
+
+    public static isLeftEnPassantLegal(game: Game, pos: Position)
+    {
+        return LeftSideEnPassantCondition(game, pos);
+    }
+
+    public static isRightEnPassantLegal(game: Game, pos: Position)
+    {
+        return RightSideEnPassantCondition(game, pos);
     }
 }
 

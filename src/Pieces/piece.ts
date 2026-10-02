@@ -10,6 +10,11 @@ abstract class Piece
         public readonly name: PieceName
     ) {}
 
+    public static isSameType(p1: Piece, p2: Piece)
+    {
+        return p1.color === p2.color && p1.name === p2.name;
+    }
+
     public get isMoved(): boolean { return this.movesPlayed !== 0; }
 
     abstract getMoves(): readonly Move[];
