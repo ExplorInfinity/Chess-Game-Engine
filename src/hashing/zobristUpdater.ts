@@ -70,7 +70,6 @@ class ZobristUpdater
 
         // Adding New Occurrence
         this.recordCurrentHashOccurrence(moveRecordIndex);
-        console.log(this._hashMap);
     }
 
     public removeMoveRecord(game: Game, moveRecordIndex: number)
@@ -115,6 +114,13 @@ class ZobristUpdater
         }
     }
 
+    public clearAllPreviousOccurrences()
+    {
+        const indexes = this._hashMap.get(this._currentHash);
+        this._hashMap.clear();
+        if (indexes) this._hashMap.set(this._currentHash, indexes);
+    }
+
     public checkThreeFoldRepetition(game: Game)
     {
         const occurrences = this._hashMap.get(this._currentHash);
@@ -130,7 +136,7 @@ class ZobristUpdater
         };
 
         // Comparing all positions
-        const matches = game.evaluateAt(occurrences, (game: Game) => {
+        const matches: boolean[] = game.evaluateAt(occurrences, (game: Game) => {
             game.updateSpecialRights();
             return game.isSamePosition(currentBoard, currentTurnColor, currentSpecialRights);
         });

@@ -37,6 +37,8 @@ class Game
         enPassantFile: null
     };
 
+    private _lastPawnMoveOrCaptureIndex: number = 0; // 1-based Indexing
+
     public readonly board: Board = new Board(BOARD_SIZE);
 
     // Getters
@@ -46,6 +48,8 @@ class Game
     public get currentTurnColor(): PieceColor   { return this._currentTurnColor; }
     public get currentStatus(): GameStatus      { return this._currentStatus; }
     public get currentResult(): GameResult      { return this._currentResult; }
+
+    public get lastPawnMoveOrCaptureIndex(): number  { return this._lastPawnMoveOrCaptureIndex; }
 
     public get moveHistory(): Readonly<MoveRecord[]>        { return this._moveHistory; }
     public get specialRights(): Readonly<GameSpecialRights> { return this._specialRights };
@@ -182,6 +186,13 @@ class Game
     // Update Game Attributes
     public updateStatus()
     {
+        if (this.lastMoveRecord &&
+            (this.lastMoveRecord.captures.length > 0 || // Any capture
+             this.lastMoveRecord.moves.some(move => move.piece.name === "pawn")) // Or any pawn move
+        ) {
+            this._lastPawnMoveOrCaptureIndex = this._moveHistory.length;
+        }
+
         const { status, result } = this.evaluateStatus();
         this._currentStatus = status;
         this._currentResult = result;
@@ -307,6 +318,7 @@ class Game
         const validation = ChessRuleSet.validateAsLegalMove(this, from, to);
         if (!validation.valid) return { result: "Illegal Move", executed: false };
 
+        // Move gets played after getting validated above conditions
         this.playMove({ from, to: validation.move }, { updateGameStatus: true, updateGameHash: true });
 
         return { result: "Legal Move", executed: true };

@@ -126,7 +126,7 @@ class ChessRuleSet
 
     public static isDrawByFiftyMoveRule(game: Game): boolean
     {
-        return false;
+        return game.moveHistory.length - game.lastPawnMoveOrCaptureIndex >= 100;
     }
 
     public static isDrawByInsufficientMaterial(game: Game): boolean
