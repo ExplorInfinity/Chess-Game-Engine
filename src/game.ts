@@ -60,6 +60,9 @@ class Game
     {
         if (this.board.isValidLayout(layout)) {
             this.board.applyLayout(layout);
+
+            this.updateSpecialRights();
+            this.updateStatus();
             this._zobristUpdater.rebuildHash(this);
             return true;
         }
@@ -152,7 +155,7 @@ class Game
                 return { status: GameStatus.DRAW, result };
         }
 
-        return { status: GameStatus.ACTIVE, result: GameResult.PENDING };
+        return { status: this._currentStatus, result: this._currentResult };
     }
 
     public evaluateAndBacktrack<T>(moveQuery: MoveQuery<LegalPosition>, fn: (game: Game) => T): T | null

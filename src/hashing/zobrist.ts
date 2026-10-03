@@ -82,11 +82,10 @@ class Zobrist
         }
 
         // Adding Special Rights
-        game.updateSpecialRights();
         hash = Zobrist.toggleSpecialRights(game.specialRights, hash);
 
         // Setting Color for Side To Move
-        hash ^= Zobrist._sideToMove["white"];
+        hash ^= Zobrist._sideToMove[game.currentTurnColor];
 
         return hash;
     }
