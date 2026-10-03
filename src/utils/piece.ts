@@ -1,4 +1,4 @@
-import {Piece, type PieceColor, type PieceName} from "../Pieces";
+import {Piece, type PieceColor, type PieceName} from "../pieces";
 
 function checkPieceColorAndName(piece: Piece | null, color: PieceColor, name: PieceName): boolean
 {

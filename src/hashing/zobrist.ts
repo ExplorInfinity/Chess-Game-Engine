@@ -2,7 +2,7 @@ import type {Position, SoftFixedArray, SoftFixedArrayGrid} from "../types";
 import {BOARD_SIZE, Game, type GameSpecialRights} from "../game";
 import type {PieceColor} from "../types/piece";
 import {CastleType} from "../constants/castleType";
-import {King, Pawn, Piece} from "../Pieces";
+import {King, Pawn, Piece} from "../pieces";
 import {PieceType} from "../constants/piece";
 import {SplitMix64} from "../utils/splitMix64";
 

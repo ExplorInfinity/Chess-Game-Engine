@@ -2,9 +2,9 @@ import type {Position, MoveRecord, MoveQuery, MoveRemark, LegalPosition, StaticM
 import type {PieceColor} from "./types/piece";
 import {Board, BoardChange, BoardStringLayout} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
-import {King, Pawn, Piece} from "./Pieces";
+import {King, Pawn, Piece} from "./pieces";
 import {switchColor} from "./utils/color";
-import {GameStatus, GameResult} from "./constants/game";
+import {GameStatus, GameResult, BOARD_SIZE, DefaultBoard} from "./constants/game";
 import {CastleType} from "./constants/castleType";
 import {GameOutcome, GameSpecialRights} from "./types/game";
 import {ZobristUpdater} from "./hashing/zobristUpdater";
@@ -16,19 +16,6 @@ type PlayMoveOptions = {
     updateGameStatus?: boolean;
     updateGameHash?: boolean;
 }
-
-const BOARD_SIZE = 8;
-
-const DefaultBoard: BoardStringLayout = [
-    ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-    ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null],
-    ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
-    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-];
 
 class Game
 {
@@ -415,6 +402,6 @@ class Game
     }
 }
 
-export { Game, BOARD_SIZE, DefaultBoard };
-export { GameStatus, GameResult } from "./constants/game"
+export { Game };
 export type { GameOutcome, GameSpecialRights } from "./types/game";
+export { GameStatus, GameResult, BOARD_SIZE, DefaultBoard } from "./constants/game";

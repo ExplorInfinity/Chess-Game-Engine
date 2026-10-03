@@ -1,6 +1,6 @@
 import {Position} from "./types";
 import type {PiecePositionMap, BoardStringLayout} from './types/board';
-import {Piece, Bishop, King, Knight, Pawn, Queen, Rook, type PieceColor, type PieceColorCode, type PieceName, type PieceNameCode, type PieceLayoutCode} from "./Pieces";
+import {Piece, Bishop, King, Knight, Pawn, Queen, Rook, type PieceColor, type PieceColorCode, type PieceName, type PieceNameCode, type PieceLayoutCode} from "./pieces";
 import {PieceCode} from "./constants/piece";
 
 type PieceConstructor = new (color: PieceColor) => Piece;
