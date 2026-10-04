@@ -3,7 +3,7 @@ import {switchColor} from "./utils/color";
 import type {PieceColor, PieceName} from "./types/piece";
 import type {IsValidMove, LegalPosition, Position, SoftFixedArrayGrid} from "./types";
 
-type attackGrid = SoftFixedArrayGrid<boolean, typeof BOARD_SIZE>;
+type AttackGrid = SoftFixedArrayGrid<boolean, typeof BOARD_SIZE>;
 
 class ChessRuleSet
 {
@@ -20,7 +20,7 @@ class ChessRuleSet
         return piecePos;
     }
 
-    private static markAttackedSquares(game: Game, piecePos: Position, attackedSquares: attackGrid): void
+    private static markAttackedSquares(game: Game, piecePos: Position, attackedSquares: AttackGrid): void
     {
         const { board } = game;
         const { boardSize, positionMap } = board;
@@ -51,12 +51,12 @@ class ChessRuleSet
         }
     }
 
-    private static getAttackedSquaresByColor(game: Game, color: PieceColor): attackGrid
+    private static getAttackedSquaresByColor(game: Game, color: PieceColor): AttackGrid
     {
         const { board } = game;
         const { boardSize, positionMap } = board;
 
-        const attackedSquares: attackGrid = Array.from({ length: boardSize }, () => Array(boardSize).fill(false)) as attackGrid;
+        const attackedSquares: AttackGrid = Array.from({ length: boardSize }, () => Array(boardSize).fill(false)) as AttackGrid;
 
         for (let y = 0; y < boardSize; ++y)
             for (let x = 0; x < boardSize; ++x)
@@ -131,7 +131,14 @@ class ChessRuleSet
 
     public static isDrawByInsufficientMaterial(game: Game): boolean
     {
-        return false;
+        const pieces = game.board.getAllPieces();
+
+        if (pieces.length === 3) {
+            if (pieces.some(piece => piece.name === "bishop") || pieces.some(piece => piece.name === "knight"))
+                return true;
+        }
+
+        return pieces.length === 2;
     }
 
     public static getLegalMoves(game: Game, piecePos: Position): LegalPosition[]

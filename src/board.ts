@@ -131,6 +131,20 @@ class Board
     {
         return (pos.x >= 0 && pos.y >= 0 && pos.x < this.boardSize && pos.y < this.boardSize);
     }
+
+    public getAllPieces(): Piece[]
+    {
+        const pieces: Piece[] = [];
+
+        for (let y = 0; y < this.boardSize; ++y)
+            for (let x = 0; x < this.boardSize; ++x) {
+                const piece = this.positionMap[y][x];
+                if (piece)
+                    pieces.push(piece);
+            }
+
+        return pieces;
+    }
 }
 
 export { Board };
