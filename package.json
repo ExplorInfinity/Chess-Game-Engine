@@ -1,12 +1,8 @@
 {
-  "name": "chess_game_engine",
+  "name": "chess_rule_engine",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
-  "scripts": {
-    "dev": "node --watch index.ts",
-    "start": "node index.ts"
-  },
+  "private": true,
   "keywords": [],
   "author": "",
   "license": "ISC",
