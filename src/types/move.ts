@@ -1,5 +1,5 @@
 import type {BoardChange, CaptureChange, MoveChange, PromotionChange} from "./board";
-import {PieceColor} from "./piece";
+import {PieceColor, type PieceName, type PieceNameCode} from "./piece";
 import {Game} from "../game";
 import {Piece} from "../pieces";
 
@@ -23,6 +23,7 @@ interface MoveVec2 {
 interface MoveQuery<T extends Position> {
     from: T;
     to: T;
+    promoteTo?: PieceNameCode;
 }
 
 interface MoveRecord {

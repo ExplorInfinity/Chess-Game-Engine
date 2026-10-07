@@ -1,5 +1,5 @@
 import type {Position, MoveRecord, MoveQuery, MoveRemark, LegalPosition, StaticMethodsMatching} from "./types";
-import type {PieceColor} from "./types/piece";
+import type {PieceColor, PieceNameCode} from "./types/piece";
 import {Board, BoardChange, BoardStringLayout} from "./board";
 import {ChessRuleSet} from "./chessRuleSet";
 import {King, Pawn, Piece} from "./pieces";
@@ -8,6 +8,7 @@ import {GameStatus, GameResult, BOARD_SIZE, DefaultBoard} from "./constants/game
 import {CastleType} from "./constants/castleType";
 import {GameOutcome, GameSpecialRights} from "./types/game";
 import {ZobristUpdater} from "./hashing/zobristUpdater";
+import {PieceClassMap, PieceCode} from "./constants/piece";
 
 type BoardChangeOptions = {
     updateGameHash?: boolean;
@@ -272,9 +273,12 @@ class Game
         moveRecord.captures.push(change);
     }
 
-    public addPromotion(moveRecord: MoveRecord, to: Position, promoteTo: typeof Piece)
+    public addPromotion(moveRecord: MoveRecord, to: Position, promotionColor: PieceColor, promotionName: PieceNameCode | null)
     {
+        const promoteTo: PieceNameCode = promotionName ?? PieceCode["queen"];
 
+        const promotion = new PieceClassMap[promoteTo](promotionColor);
+        moveRecord.promotions.push({ type: "promotion", to, piece: promotion });
     }
 
     // Move Execution

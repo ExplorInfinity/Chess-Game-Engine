@@ -1,4 +1,4 @@
-import {Game} from "../game";
+import {BOARD_SIZE, Game} from "../game";
 import type {MoveConditionFunction, Move, Position, OnMove, MoveRecord, MoveQuery} from "../types";
 import {ChessRuleSet} from "../chessRuleSet";
 import {getColorMultiplier} from "../utils/color";
@@ -74,17 +74,21 @@ const OnRightSideEnPassant: OnMove = (game: Game, moveQuery: MoveQuery<Position>
     game.addCapture(moveRecord, capturePawnPos);
 }
 
-// todo: Handle pawn promotions
 const HandlePromotion: OnMove = (game: Game, moveQuery: MoveQuery<Position>, moveRecord: MoveRecord) => {
+    const { from, to } = moveQuery;
+    const pawn = game.board.getAtPos(from) as Piece;
 
+    const promotionRank = pawn.color === "white" ? 0 : BOARD_SIZE-1;
+    if (to.y === promotionRank)
+        game.addPromotion(moveRecord, moveQuery.to, pawn.color, moveQuery.promoteTo ?? null);
 }
 
 const PawnMoves: Move[] = [
     { vec: { dx:  0, dy:  1 }, isSliding: false, canAttack: false, onMove: HandlePromotion },
     { vec: { dx:  0, dy:  2 }, isSliding: false, canAttack: false, condition: DoubleStepMoveCondition }, // Double Step Move
 
-    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: true, condition: LeftCaptureCondition }, // Left Capture
-    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: true, condition: RightCaptureCondition }, // Right Capture
+    { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: true, condition: LeftCaptureCondition, onMove: HandlePromotion }, // Left Capture
+    { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: true, condition: RightCaptureCondition, onMove: HandlePromotion }, // Right Capture
 
     { vec: { dx: -1, dy:  1 }, isSliding: false, canAttack: false, condition: LeftSideEnPassantCondition, onMove: OnLeftSideEnPassant }, // Left EnPassant
     { vec: { dx:  1, dy:  1 }, isSliding: false, canAttack: false, condition: RightSideEnPassantCondition, onMove: OnRightSideEnPassant }, // Right EnPassant
